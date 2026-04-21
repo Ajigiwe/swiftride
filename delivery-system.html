@@ -595,16 +595,26 @@
             }
 
             .landing-nav {
-                flex-direction: column;
-                gap: 1.5rem;
-                padding: 1.5rem 1rem;
+                flex-direction: row;
+                justify-content: space-between;
+                gap: 1rem;
+                padding: 1rem;
             }
 
             .nav-links {
-                width: 100%;
-                justify-content: center;
-                flex-wrap: wrap;
-                gap: 1rem;
+                width: auto;
+                justify-content: flex-end;
+                flex-wrap: nowrap;
+                gap: 0.75rem;
+            }
+
+            .nav-links .btn {
+                padding: 0.5rem 0.75rem !important;
+                font-size: 0.85rem !important;
+            }
+
+            .nav-link {
+                font-size: 0.85rem;
             }
 
             .landing-hero {
