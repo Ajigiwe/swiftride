@@ -1,0 +1,1336 @@
+    <title>SwiftRide | Friendly Delivery</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #eef2ff;
+            --secondary: #f59e0b;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --error: #ef4444;
+            --success: #10b981;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, .logo {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header */
+        header {
+            background: var(--surface);
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.75rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--secondary);
+            border-radius: 50%;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            display: flex;
+            align-items: center;
+            gap: 4rem;
+            padding: 4rem 0;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .hero-text {
+            flex: 1;
+        }
+
+        .hero-image {
+            flex: 1;
+            max-width: 450px;
+        }
+
+        .hero-image img {
+            width: 100%;
+            height: auto;
+            border-radius: 24px;
+            box-shadow: var(--shadow-lg);
+        }
+        /* Forms & Inputs */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.2s;
+            background: var(--bg);
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--surface);
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.875rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Outfit', sans-serif;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text);
+            border: 1.5px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg);
+            border-color: var(--text-light);
+        }
+
+        .switch-link {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 0.95rem;
+            color: var(--text-light);
+        }
+
+        .switch-link a {
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Dashboard Components */
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .rider-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .rider-card {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 24px;
+            border: 2px solid transparent;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .rider-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-light);
+        }
+
+        .rider-card.selected {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .rider-icon-bg {
+            width: 64px;
+            height: 64px;
+            background: var(--primary-light);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .rider-specs {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .spec-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .spec-icon {
+            color: var(--primary);
+        }
+
+        .form-card {
+            background: var(--surface);
+            padding: 2.5rem;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .deliveries-list {
+            margin-top: 4rem;
+        }
+
+        .delivery-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .delivery-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-active {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-delivered {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        /* Tracking & Map */
+        .tracking-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        #map {
+            height: 500px;
+            border-radius: 24px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .tracking-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border: 1px solid #fecaca;
+        }
+
+        /* Auth Pages Redesign */
+        .auth-container {
+            display: flex;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background: var(--surface);
+        }
+
+        .auth-wrapper {
+            display: flex;
+            background: var(--surface);
+            border-radius: 32px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            width: 100%;
+            max-width: 1000px;
+            border: 1px solid var(--border);
+        }
+
+        .auth-form-side {
+            flex: 1;
+            padding: 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .auth-image-side {
+            flex: 1;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            position: relative;
+        }
+
+        .auth-image-side img {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            transform: scale(1.1);
+        }
+
+        .auth-image-side::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(to top, var(--primary-light), transparent);
+        }
+        .driver-card {
+            background: var(--surface);
+            padding: 1.25rem;
+            border-radius: 16px;
+            border: 2px solid transparent;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .driver-card:hover {
+            border-color: var(--primary-light);
+            transform: scale(1.02);
+        }
+
+        .driver-card.selected {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        /* Landing Page */
+        .landing-nav {
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-light);
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .landing-hero {
+            padding: 6rem 2rem;
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .landing-badge {
+            display: inline-block;
+            padding: 0.5rem 1.25rem;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .feature-card {
+            background: var(--surface);
+            padding: 3rem 2rem;
+            border-radius: 24px;
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow);
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--primary-light);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1.5rem;
+        }
+
+        @media (max-width: 900px) {
+            .auth-wrapper {
+                flex-direction: column;
+            }
+            .auth-image-side {
+                display: none;
+            }
+            .auth-form-side {
+                padding: 3rem 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Landing Page -->
+    <div id="landingPage" class="page active">
+        <nav class="landing-nav">
+            <div class="logo">SwiftRide<div class="logo-dot"></div></div>
+            <div class="nav-links">
+                <a href="#" class="nav-link">Services</a>
+                <a href="#" class="nav-link">Partner</a>
+                <button class="btn btn-secondary" onclick="showPage('loginPage')" style="width: auto; padding: 0.6rem 1.5rem;">Sign In</button>
+                <button class="btn" onclick="showPage('signupPage')" style="width: auto; padding: 0.6rem 1.5rem;">Join Us</button>
+            </div>
+        </nav>
+
+        <div class="landing-hero">
+            <div class="landing-badge">Friendly. Fast. Human.</div>
+            <h1 style="font-size: 4.5rem; line-height: 1.1; margin-bottom: 1.5rem; letter-spacing: -2px;">The most <span style="color: var(--primary);">human</span> way to move things.</h1>
+            <p style="font-size: 1.25rem; color: var(--text-light); margin-bottom: 3rem; max-width: 700px; margin-left: auto; margin-right: auto;">
+                SwiftRide connects you with friendly local riders who care about your packages as much as you do. Simple, transparent, and always smiling.
+            </p>
+            <div style="display: flex; gap: 1.5rem; justify-content: center;">
+                <button class="btn" onclick="showPage('signupPage')" style="width: auto; padding: 1rem 2.5rem; font-size: 1.1rem;">Start Shipping Now</button>
+                <button class="btn btn-secondary" style="width: auto; padding: 1rem 2.5rem; font-size: 1.1rem;">Learn How It Works</button>
+            </div>
+        </div>
+
+        <div style="max-width: 1000px; margin: 0 auto; padding: 0 2rem;">
+            <img src="C:\Users\Vader\.gemini\antigravity\brain\dbc5de2e-b52e-44b6-aa8c-9daeb902058d\delivery_hero_1776780592977.png" style="width: 100%; border-radius: 40px; box-shadow: var(--shadow-lg);" alt="SwiftRide Hero">
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h3>Fully Protected</h3>
+                <p style="color: var(--text-light); margin-top: 1rem;">Every delivery is insured and handled with the utmost care by our verified partners.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⏱️</div>
+                <h3>Real-time Speed</h3>
+                <p style="color: var(--text-light); margin-top: 1rem;">Track your package in real-time and get notified exactly when it arrives.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🌱</div>
+                <h3>Eco-Friendly</h3>
+                <p style="color: var(--text-light); margin-top: 1rem;">We prioritize bicycle and electric vehicle riders for a cleaner neighborhood.</p>
+            </div>
+        </div>
+
+        <footer style="padding: 4rem 2rem; border-top: 1px solid var(--border); text-align: center;">
+            <div class="logo" style="margin-bottom: 1.5rem;">SwiftRide<div class="logo-dot"></div></div>
+            <p style="color: var(--text-light); font-size: 0.9rem;">© 2026 SwiftRide Delivery Service. Built for humans, by humans.</p>
+        </footer>
+    </div>
+
+    <!-- Login Page -->
+    <div id="loginPage" class="page">
+        <div class="auth-container">
+            <div class="auth-wrapper">
+                <div class="auth-form-side">
+                    <div class="logo" style="margin-bottom: 2rem; cursor: pointer;" onclick="showPage('landingPage')">SwiftRide<div class="logo-dot"></div></div>
+                    <h1 class="auth-title">Welcome back</h1>
+                    <p class="auth-subtitle">We're happy to see you again!</p>
+                    <div id="loginError" class="error-message" style="display: none;"></div>
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="loginEmail">Email Address</label>
+                            <input type="email" id="loginEmail" placeholder="john@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Password</label>
+                            <input type="password" id="loginPassword" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="btn">Sign In</button>
+                    </form>
+                    <div class="switch-link">
+                        New to SwiftRide? <a onclick="showPage('signupPage')">Create an account</a>
+                    </div>
+                </div>
+                <div class="auth-image-side">
+                    <img src="C:\Users\Vader\.gemini\antigravity\brain\dbc5de2e-b52e-44b6-aa8c-9daeb902058d\auth_image_1776781244090.png" alt="Welcome Illustration">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Signup Page -->
+    <div id="signupPage" class="page">
+        <div class="auth-container">
+            <div class="auth-wrapper">
+                <div class="auth-image-side">
+                    <img src="C:\Users\Vader\.gemini\antigravity\brain\dbc5de2e-b52e-44b6-aa8c-9daeb902058d\auth_image_1776781244090.png" alt="Join Illustration" style="transform: scaleX(-1);">
+                </div>
+                <div class="auth-form-side">
+                    <div class="logo" style="margin-bottom: 2rem; cursor: pointer;" onclick="showPage('landingPage')">SwiftRide<div class="logo-dot"></div></div>
+                    <h1 class="auth-title">Join us</h1>
+                    <p class="auth-subtitle">Start your journey with SwiftRide today.</p>
+                    <div id="signupError" class="error-message" style="display: none;"></div>
+                    <form id="signupForm">
+                        <div class="form-group">
+                            <label for="signupName">Full Name</label>
+                            <input type="text" id="signupName" placeholder="John Doe" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupEmail">Email Address</label>
+                            <input type="email" id="signupEmail" placeholder="john@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupPhone">Phone Number</label>
+                            <input type="tel" id="signupPhone" placeholder="+1 (555) 000-0000" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupPassword">Password</label>
+                            <input type="password" id="signupPassword" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="btn">Create Account</button>
+                    </form>
+                    <div class="switch-link">
+                        Already have an account? <a onclick="showPage('loginPage')">Sign In</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboardPage" class="page">
+        <header>
+            <div class="header-content">
+                <div class="logo">SwiftRide<div class="logo-dot"></div></div>
+                <div class="user-info">
+                    <button class="btn btn-secondary" onclick="showPage('historyPage')" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.9rem;">My History</button>
+                    <span class="user-name" id="dashboardUserName"></span>
+                    <button class="btn btn-secondary" onclick="logout()" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.9rem;">Sign Out</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-container">
+            <div class="hero">
+                <div class="hero-text">
+                    <h1 style="font-size: 3.5rem; margin-bottom: 1rem; line-height: 1.1;">Swift delivery for your <span style="color: var(--primary);">world.</span></h1>
+                    <p style="color: var(--text-light); font-size: 1.2rem; margin-bottom: 2rem;">Reliable, friendly, and fast delivery for everything you need. Pick your rider and get started below.</p>
+                </div>
+                <div class="hero-image">
+                    <img src="C:\Users\Vader\.gemini\antigravity\brain\dbc5de2e-b52e-44b6-aa8c-9daeb902058d\delivery_hero_1776780592977.png" alt="Friendly Delivery">
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Requests</div>
+                    <div class="stat-value" id="totalDeliveries">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">In Transit</div>
+                    <div class="stat-value" id="activeDeliveries">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Completed</div>
+                    <div class="stat-value" id="completedDeliveries">0</div>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <span>Active Shipments</span>
+            </div>
+            <div id="activeDeliveriesList"></div>
+
+            <div class="section-title" style="margin-top: 3rem;">
+                <span>Choose your service</span>
+            </div>
+
+            <div class="rider-grid">
+                <div class="rider-card" onclick="selectRider('motorcycle')">
+                    <div class="rider-icon-bg">🏍️</div>
+                    <h3 class="rider-name">Motorcycle</h3>
+                    <p class="rider-desc">Perfect for small items and quick errands around town.</p>
+                    <div class="rider-specs">
+                        <div class="spec-item"><span class="spec-icon">⏱️</span> 15-25 min delivery</div>
+                        <div class="spec-item"><span class="spec-icon">⚖️</span> Up to 5kg</div>
+                    </div>
+                </div>
+
+                <div class="rider-card" onclick="selectRider('car')">
+                    <div class="rider-icon-bg">🚗</div>
+                    <h3 class="rider-name">Standard Car</h3>
+                    <p class="rider-desc">Great for groceries, large packages, or fragile items.</p>
+                    <div class="rider-specs">
+                        <div class="spec-item"><span class="spec-icon">⏱️</span> 30-50 min delivery</div>
+                        <div class="spec-item"><span class="spec-icon">⚖️</span> Up to 50kg</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-card" id="deliveryFormSection" style="display: none;">
+                <h2 style="margin-bottom: 2rem;">Delivery Details</h2>
+                <form id="deliveryForm">
+                    <input type="hidden" id="selectedRiderType">
+                    <input type="hidden" id="estimatedFee">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div class="form-group">
+                            <label for="pickupAddress">Pickup From</label>
+                            <select id="pickupAddress" onchange="calculateFee()" required>
+                                <option value="">Select service first...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="deliveryAddress">Deliver To</label>
+                            <select id="deliveryAddress" onchange="calculateFee()" required>
+                                <option value="">Select service first...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div class="form-group">
+                            <label for="recipientName">Recipient Name</label>
+                            <input type="text" id="recipientName" placeholder="Jane Smith" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="recipientPhone">Contact Number</label>
+                            <input type="tel" id="recipientPhone" placeholder="(555) 000-0000" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="packageDescription">What are we delivering?</label>
+                        <textarea id="packageDescription" placeholder="e.g. Small box of books" required></textarea>
+                    </div>
+                    <div id="driverSelectionContainer" style="margin-bottom: 2rem;"></div>
+
+                    <div id="feeDisplay" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--primary-light); border-radius: 12px; font-weight: 700; color: var(--primary); text-align: center;">
+                        Select locations to see fee
+                    </div>
+                    <button type="submit" class="btn">Request Delivery</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Page -->
+    <div id="historyPage" class="page">
+        <header>
+            <div class="header-content">
+                <div class="logo">SwiftRide<div class="logo-dot"></div></div>
+                <div class="user-info">
+                    <button class="btn btn-secondary" onclick="showPage('dashboardPage')" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.9rem;">Back to Dashboard</button>
+                </div>
+            </div>
+        </header>
+        <div class="dashboard-container">
+            <h1 style="margin-bottom: 2rem;">Your Delivery History</h1>
+            <div id="historyDeliveriesList"></div>
+        </div>
+    </div>
+
+    <!-- Tracking Page -->
+    <div id="trackingPage" class="page">
+        <header>
+            <div class="header-content">
+                <div class="logo">SwiftRide<div class="logo-dot"></div></div>
+                <div class="user-info">
+                    <button class="btn btn-secondary" onclick="showPage('dashboardPage')" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.9rem;">Back to Dashboard</button>
+                </div>
+            </div>
+        </header>
+        <div class="tracking-container">
+            <h1 id="trackingTitle" style="margin-bottom: 2rem;">Track your delivery</h1>
+            <div id="map"></div>
+            <div class="tracking-info-grid" id="trackingInfo"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Data Storage
+        let users = JSON.parse(localStorage.getItem('swiftride_users') || '[]');
+        let deliveries = JSON.parse(localStorage.getItem('swiftride_deliveries') || '[]');
+        let currentUser = JSON.parse(localStorage.getItem('swiftride_current_user') || 'null');
+        let map = null;
+        let markers = [];
+
+        // Locations Data
+        const WESTERN_LOCATIONS = [
+            { name: "Takoradi", lat: 4.8917, lng: -1.7500 },
+            { name: "Sekondi", lat: 4.9333, lng: -1.7000 },
+            { name: "Tarkwa", lat: 5.3000, lng: -1.9833 },
+            { name: "Axim", lat: 4.8667, lng: -2.2333 },
+            { name: "Elubo", lat: 5.2833, lng: -2.7167 },
+            { name: "Prestea", lat: 5.4333, lng: -2.1333 },
+            { name: "Bibiani", lat: 6.4667, lng: -2.3167 }
+        ];
+
+        const REGIONAL_CAPITALS = [
+            { name: "Accra (Greater Accra)", lat: 5.6037, lng: -0.1870 },
+            { name: "Kumasi (Ashanti)", lat: 6.6666, lng: -1.6163 },
+            { name: "Takoradi (Western)", lat: 4.8917, lng: -1.7500 },
+            { name: "Cape Coast (Central)", lat: 5.1053, lng: -1.2466 },
+            { name: "Koforidua (Eastern)", lat: 6.0784, lng: -0.2713 },
+            { name: "Ho (Volta)", lat: 6.6000, lng: 0.4667 },
+            { name: "Tamale (Northern)", lat: 9.4000, lng: -0.8500 },
+            { name: "Bolgatanga (Upper East)", lat: 10.7856, lng: -0.8514 },
+            { name: "Wa (Upper West)", lat: 10.0607, lng: -2.5019 },
+            { name: "Sunyani (Bono)", lat: 7.3399, lng: -2.3267 },
+            { name: "Techiman (Bono East)", lat: 7.5833, lng: -1.9333 },
+            { name: "Goaso (Ahafo)", lat: 6.8000, lng: -2.5167 },
+            { name: "Damongo (Savannah)", lat: 9.0833, lng: -1.8167 },
+            { name: "Nalerigu (North East)", lat: 10.5333, lng: -0.3667 },
+            { name: "Dambai (Oti)", lat: 8.0667, lng: 0.1833 },
+            { name: "Sefwi Wiawso (Western North)", lat: 6.1667, lng: -2.4833 }
+        ];
+
+        const DRIVERS = {
+            motorcycle: [
+                { id: 'dr1', name: 'Kofi Mensah', rating: 4.8, vehicle: 'Boxer BM150', plate: 'M-23-AS', photo: '👤' },
+                { id: 'dr2', name: 'Kwame Boateng', rating: 4.9, vehicle: 'Yamaha Crux', plate: 'M-21-GW', photo: '👤' },
+                { id: 'dr3', name: 'Isaac Osei', rating: 4.7, vehicle: 'TVS HLX', plate: 'M-22-ER', photo: '👤' }
+            ],
+            car: [
+                { id: 'dr4', name: 'Ama Serwaa', rating: 5.0, vehicle: 'Toyota Vitz', plate: 'C-24-ACC', photo: '👩' },
+                { id: 'dr5', name: 'Yaw Appiah', rating: 4.7, vehicle: 'Hyundai Elantra', plate: 'C-22-KUM', photo: '👤' },
+                { id: 'dr6', name: 'Abena Mansa', rating: 4.9, vehicle: 'Kia Picanto', plate: 'C-23-TAK', photo: '👩' }
+            ]
+        };
+
+        // Page Navigation
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+
+            if (pageId === 'dashboardPage' || pageId === 'historyPage') {
+                updateDashboard();
+            } else if (pageId === 'trackingPage') {
+                initializeMap();
+            }
+        }
+
+        // Authentication
+        const signupForm = document.getElementById('signupForm');
+        if (signupForm) {
+            signupForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('signupName').value;
+                const email = document.getElementById('signupEmail').value;
+                const phone = document.getElementById('signupPhone').value;
+                const password = document.getElementById('signupPassword').value;
+
+                if (users.find(u => u.email === email)) {
+                    showError('signupError', 'Email already registered');
+                    return;
+                }
+
+                const user = {
+                    id: Date.now().toString(),
+                    name,
+                    email,
+                    phone,
+                    password,
+                    createdAt: new Date().toISOString()
+                };
+
+                users.push(user);
+                localStorage.setItem('swiftride_users', JSON.stringify(users));
+                
+                showError('signupError', 'Account created successfully!', false);
+                setTimeout(() => showPage('loginPage'), 1000);
+            });
+        }
+
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+
+                const user = users.find(u => u.email === email && u.password === password);
+
+                if (!user) {
+                    showError('loginError', 'Invalid email or password');
+                    return;
+                }
+
+                currentUser = user;
+                localStorage.setItem('swiftride_current_user', JSON.stringify(user));
+                showPage('dashboardPage');
+            });
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('swiftride_current_user');
+            showPage('landingPage');
+        }
+
+        function showError(elementId, message, isError = true) {
+            const errorEl = document.getElementById(elementId);
+            if (!errorEl) return;
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            errorEl.style.background = isError ? 'rgba(255, 68, 68, 0.1)' : 'rgba(0, 255, 136, 0.1)';
+            errorEl.style.borderColor = isError ? 'var(--error)' : 'var(--success)';
+            errorEl.style.color = isError ? 'var(--error)' : 'var(--primary)';
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 3000);
+        }
+
+        // Rider Selection & Location Logic
+        function selectRider(type) {
+            document.querySelectorAll('.rider-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            event.currentTarget.classList.add('selected');
+            document.getElementById('selectedRiderType').value = type;
+            
+            // Populate Location Selects
+            const locations = type === 'motorcycle' ? WESTERN_LOCATIONS : REGIONAL_CAPITALS;
+            populateSelect('pickupAddress', locations);
+            populateSelect('deliveryAddress', locations);
+            
+            // Show Driver Selection
+            renderDriverSelection(type);
+            
+            document.getElementById('deliveryFormSection').style.display = 'block';
+            document.getElementById('deliveryFormSection').scrollIntoView({ behavior: 'smooth' });
+            calculateFee();
+        }
+
+        function renderDriverSelection(type) {
+            const container = document.getElementById('driverSelectionContainer');
+            const drivers = DRIVERS[type];
+            
+            container.innerHTML = `
+                <label style="margin-bottom: 1rem;">Choose your Driver</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    ${drivers.map(dr => `
+                        <div class="driver-card" onclick="selectDriver('${dr.id}')" id="driver-${dr.id}">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <div style="width: 40px; height: 40px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">${dr.photo}</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 700; font-size: 0.9rem;">${dr.name}</div>
+                                    <div style="font-size: 0.75rem; color: var(--secondary);">★ ${dr.rating}</div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-light);">
+                                <div>${dr.vehicle}</div>
+                                <div style="font-weight: 600;">${dr.plate}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <input type="hidden" id="selectedDriverId" required>
+            `;
+        }
+
+        function selectDriver(id) {
+            document.querySelectorAll('.driver-card').forEach(card => card.classList.remove('selected'));
+            document.getElementById(`driver-${id}`).classList.add('selected');
+            document.getElementById('selectedDriverId').value = id;
+        }
+
+        function populateSelect(id, locations) {
+            const select = document.getElementById(id);
+            select.innerHTML = '<option value="">Select a location...</option>' + 
+                locations.map(loc => `<option value="${loc.name}" data-lat="${loc.lat}" data-lng="${loc.lng}">${loc.name}</option>`).join('');
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function calculateFee() {
+            const type = document.getElementById('selectedRiderType').value;
+            const pickup = document.getElementById('pickupAddress');
+            const delivery = document.getElementById('deliveryAddress');
+            
+            const pickupOpt = pickup.options[pickup.selectedIndex];
+            const deliveryOpt = delivery.options[delivery.selectedIndex];
+            
+            if (!pickupOpt?.value || !deliveryOpt?.value) return;
+            
+            const dist = calculateDistance(
+                pickupOpt.dataset.lat, pickupOpt.dataset.lng,
+                deliveryOpt.dataset.lat, deliveryOpt.dataset.lng
+            );
+            
+            const base = type === 'motorcycle' ? 10 : 50;
+            const rate = type === 'motorcycle' ? 2 : 5;
+            const total = base + (dist * rate);
+            
+            document.getElementById('feeDisplay').textContent = `Estimated Fee: GHS ${total.toFixed(2)} (${dist.toFixed(1)} km)`;
+            document.getElementById('estimatedFee').value = total.toFixed(2);
+        }
+
+        // Delivery Creation
+        const deliveryForm = document.getElementById('deliveryForm');
+        if (deliveryForm) {
+            deliveryForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const driverId = document.getElementById('selectedDriverId').value;
+                if (!driverId) {
+                    alert('Please select a driver first!');
+                    return;
+                }
+
+                const pickupSelect = document.getElementById('pickupAddress');
+                const deliverySelect = document.getElementById('deliveryAddress');
+                const pickupOpt = pickupSelect.options[pickupSelect.selectedIndex];
+                const deliveryOpt = deliverySelect.options[deliverySelect.selectedIndex];
+                
+                const type = document.getElementById('selectedRiderType').value;
+                const driver = DRIVERS[type].find(dr => dr.id === driverId);
+
+                const delivery = {
+                    id: 'DLV-' + Date.now(),
+                    userId: currentUser.id,
+                    riderType: type,
+                    driver: driver,
+                    pickupAddress: pickupOpt.value,
+                    deliveryAddress: deliveryOpt.value,
+                    recipientName: document.getElementById('recipientName').value,
+                    recipientPhone: document.getElementById('recipientPhone').value,
+                    packageDescription: document.getElementById('packageDescription').value,
+                    fee: document.getElementById('estimatedFee').value,
+                    status: 'active',
+                    createdAt: new Date().toISOString(),
+                    pickupLat: parseFloat(pickupOpt.dataset.lat),
+                    pickupLng: parseFloat(pickupOpt.dataset.lng),
+                    deliveryLat: parseFloat(deliveryOpt.dataset.lat),
+                    deliveryLng: parseFloat(deliveryOpt.dataset.lng),
+                    riderLat: parseFloat(pickupOpt.dataset.lat),
+                    riderLng: parseFloat(pickupOpt.dataset.lng)
+                };
+
+                deliveries.push(delivery);
+                localStorage.setItem('swiftride_deliveries', JSON.stringify(deliveries));
+
+                deliveryForm.reset();
+                document.getElementById('deliveryFormSection').style.display = 'none';
+                document.querySelectorAll('.rider-card').forEach(card => card.classList.remove('selected'));
+
+                updateDashboard();
+                alert('Delivery request created! Fee: GHS ' + delivery.fee);
+            });
+        }
+
+        // Dashboard & History Rendering
+        function updateDashboard() {
+            if (!currentUser) return;
+
+            const userNameEls = document.querySelectorAll('#dashboardUserName, #trackingUserName');
+            userNameEls.forEach(el => el.textContent = currentUser.name);
+
+            const userDeliveries = deliveries.filter(d => d.userId === currentUser.id);
+            const activeDeliveries = userDeliveries.filter(d => d.status === 'active');
+            const completedDeliveries = userDeliveries.filter(d => d.status === 'delivered');
+
+            // Update Stats
+            const totalEl = document.getElementById('totalDeliveries');
+            const activeEl = document.getElementById('activeDeliveries');
+            const completedEl = document.getElementById('completedDeliveries');
+            
+            if (totalEl) totalEl.textContent = userDeliveries.length;
+            if (activeEl) activeEl.textContent = activeDeliveries.length;
+            if (completedEl) completedEl.textContent = completedDeliveries.length;
+
+            renderDeliveriesList(userDeliveries);
+        }
+
+        function renderDeliveriesList(deliveriesList) {
+            const activeContainer = document.getElementById('activeDeliveriesList');
+            const historyContainer = document.getElementById('historyDeliveriesList');
+            
+            const active = deliveriesList.filter(d => d.status === 'active');
+            const history = deliveriesList.filter(d => d.status === 'delivered');
+
+            if (activeContainer) {
+                if (active.length === 0) {
+                    activeContainer.innerHTML = '<div style="text-align: center; color: var(--text-light); padding: 2rem; background: var(--surface); border-radius: 20px; border: 1px dashed var(--border);">No active shipments. Choose a service below to start!</div>';
+                } else {
+                    activeContainer.innerHTML = active.map(d => renderDeliveryCard(d)).join('');
+                }
+            }
+
+            if (historyContainer) {
+                if (history.length === 0) {
+                    historyContainer.innerHTML = '<div style="text-align: center; color: var(--text-light); padding: 4rem;">No delivery history yet.</div>';
+                } else {
+                    historyContainer.innerHTML = history.sort((a, b) => 
+                        new Date(b.createdAt) - new Date(a.createdAt)
+                    ).map(d => renderDeliveryCard(d)).join('');
+                }
+            }
+        }
+
+        function renderDeliveryCard(delivery) {
+            return `
+                <div class="delivery-card" onclick="trackDelivery('${delivery.id}')">
+                    <div class="rider-icon-bg" style="width: 48px; height: 48px; margin-bottom: 0; font-size: 1.25rem;">
+                        ${delivery.riderType === 'motorcycle' ? '🏍️' : '🚗'}
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 700; font-size: 1.1rem; color: var(--text);">${delivery.id}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-light);">To: ${delivery.deliveryAddress}</div>
+                        <div style="font-size: 0.85rem; font-weight: 600; color: var(--primary);">Driver: ${delivery.driver?.name || 'Assigned soon'}</div>
+                    </div>
+                    <div class="status-badge ${delivery.status === 'active' ? 'status-active' : 'status-delivered'}">
+                        ${delivery.status === 'active' ? 'In Transit' : 'Completed'}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Tracking
+        function trackDelivery(deliveryId) {
+            const delivery = deliveries.find(d => d.id === deliveryId);
+            if (!delivery) return;
+
+            showPage('trackingPage');
+            const title = document.getElementById('trackingTitle');
+            if (title) title.textContent = `Tracking ${delivery.id}`;
+            setTimeout(() => {
+                displayDeliveryOnMap(delivery);
+            }, 100);
+        }
+
+        function initializeMap() {
+            if (map) {
+                map.remove();
+            }
+
+            map = L.map('map', { zoomControl: false }).setView([7.9465, -1.0232], 7);
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '©OpenStreetMap ©CartoDB'
+            }).addTo(map);
+        }
+
+        function displayDeliveryOnMap(delivery) {
+            if (!map) {
+                initializeMap();
+            }
+
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+
+            const pickupMarker = L.marker([delivery.pickupLat, delivery.pickupLng], {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: '<div style="background: #4F46E5; border: 3px solid white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: var(--shadow);">📍</div>',
+                    iconSize: [32, 32]
+                })
+            }).addTo(map).bindPopup('<b>Pickup</b><br>' + delivery.pickupAddress);
+
+            const deliveryMarker = L.marker([delivery.deliveryLat, delivery.deliveryLng], {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: '<div style="background: #F59E0B; border: 3px solid white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: var(--shadow);">🎯</div>',
+                    iconSize: [32, 32]
+                })
+            }).addTo(map).bindPopup('<b>Delivery</b><br>' + delivery.deliveryAddress);
+
+            const riderIcon = delivery.riderType === 'motorcycle' ? '🏍️' : '🚗';
+            const riderMarker = L.marker([delivery.riderLat, delivery.riderLng], {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background: #FFFFFF; border: 3px solid #10B981; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: var(--shadow-lg);">${riderIcon}</div>`,
+                    iconSize: [44, 44]
+                })
+            }).addTo(map).bindPopup('<b>Rider</b><br>En route');
+
+            markers.push(pickupMarker, deliveryMarker, riderMarker);
+
+            const routeLine = L.polyline([
+                [delivery.pickupLat, delivery.pickupLng],
+                [delivery.riderLat, delivery.riderLng],
+                [delivery.deliveryLat, delivery.deliveryLng]
+            ], {
+                color: '#4F46E5',
+                weight: 4,
+                opacity: 0.6,
+                dashArray: '8, 12'
+            }).addTo(map);
+            markers.push(routeLine);
+
+            const bounds = L.latLngBounds([
+                [delivery.pickupLat, delivery.pickupLng],
+                [delivery.deliveryLat, delivery.deliveryLng],
+                [delivery.riderLat, delivery.riderLng]
+            ]);
+            map.fitBounds(bounds, { padding: [60, 60] });
+
+            animateRider(delivery, riderMarker);
+
+            document.getElementById('trackingInfo').innerHTML = `
+                <div class="stat-card" style="display: flex; align-items: center; gap: 1rem; text-align: left; grid-column: span 2;">
+                    <div style="width: 50px; height: 50px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">${delivery.driver?.photo || '👤'}</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 800; font-size: 1.1rem;">${delivery.driver?.name || 'Assigned Driver'}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-light);">${delivery.driver?.vehicle || 'Vehicle'} • ${delivery.driver?.plate || 'PLATE'}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="color: var(--secondary); font-weight: 700;">★ ${delivery.driver?.rating || '5.0'}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-light);">Top Rated</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Estimated Time</div>
+                    <div class="stat-value" style="font-size: 1.5rem; color: var(--primary);" id="etaDisplay">30 mins</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Fee</div>
+                    <div class="stat-value" style="font-size: 1.5rem;">GHS ${delivery.fee}</div>
+                </div>
+            `;
+        }
+
+        function animateRider(delivery, riderMarker) {
+            if (delivery.status !== 'active') return;
+
+            let step = 0;
+            const steps = 600; // Increased steps to slow down (was 100)
+            const intervalMs = 100; // 0.1s interval
+            const startLat = delivery.riderLat;
+            const startLng = delivery.riderLng;
+            const endLat = delivery.deliveryLat;
+            const endLng = delivery.deliveryLng;
+
+            const interval = setInterval(() => {
+                step++;
+                const progress = step / steps;
+                
+                const currentLat = startLat + (endLat - startLat) * progress;
+                const currentLng = startLng + (endLng - startLng) * progress;
+                
+                riderMarker.setLatLng([currentLat, currentLng]);
+                
+                // Update ETA Display
+                const remainingMinutes = Math.max(1, Math.round(30 * (1 - progress)));
+                const etaDisplay = document.getElementById('etaDisplay');
+                if (etaDisplay) {
+                    etaDisplay.textContent = `${remainingMinutes} mins`;
+                }
+
+                if (step >= steps) {
+                    clearInterval(interval);
+                    delivery.status = 'delivered';
+                    const index = deliveries.findIndex(d => d.id === delivery.id);
+                    deliveries[index] = delivery;
+                    localStorage.setItem('swiftride_deliveries', JSON.stringify(deliveries));
+                    
+                    if (etaDisplay) etaDisplay.textContent = 'Arrived';
+                    riderMarker.bindPopup('<b style="color: var(--success);">Delivery Complete!</b>').openPopup();
+                    updateDashboard();
+                }
+            }, intervalMs);
+        }
+
+        // Initialize
+        if (currentUser) {
+            showPage('dashboardPage');
+        } else {
+            showPage('landingPage');
+        }
+    </script>
+</body>
+</html>
