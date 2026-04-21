@@ -715,9 +715,10 @@
             background: rgba(15, 23, 42, 0.8);
             backdrop-filter: blur(8px);
             z-index: 1000;
-            align-items: center;
+            align-items: flex-start; /* Changed from center to allow scrolling from top */
             justify-content: center;
-            padding: 2rem;
+            padding: 2rem 1rem;
+            overflow-y: auto; /* Enable scrolling */
             animation: fadeIn 0.3s ease-out;
         }
 
@@ -733,8 +734,22 @@
             padding: 3rem;
             position: relative;
             box-shadow: var(--shadow-lg);
+            margin: auto; /* Center in scrollable area */
             transform: scale(0.9);
             animation: modalScale 0.3s forwards cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @media (max-width: 600px) {
+            .modal-content {
+                padding: 2rem 1.5rem;
+                border-radius: 24px;
+            }
+            .modal-content h2 {
+                font-size: 1.75rem !important;
+            }
+            .how-it-works-step {
+                gap: 1rem;
+            }
         }
 
         @keyframes modalScale {
